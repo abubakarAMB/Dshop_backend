@@ -27,7 +27,7 @@ class User extends ActiveRecord implements IdentityInterface {
              //email must be a valid email
             ['username', 'unique'],
             //user role se by default to student S user_role
-             [['user_role'], 'safe'],
+             [['user_role', 'last_login'], 'safe'],
 
             //password confirmation
             ['password_repeate', 'compare', 'compareAttribute' => 'password'],
@@ -85,5 +85,13 @@ class User extends ActiveRecord implements IdentityInterface {
     public function getProfile() {
       return $this->hasOne(Profile::className(),['user_id'=>'id']); 
     } 
+     /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getServices()
+    {
+        return $this->hasMany(Services::className(), ['user_id' => 'id']);
+    }
+
 }
 ?>

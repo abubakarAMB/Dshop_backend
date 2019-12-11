@@ -1,159 +1,44 @@
 <?php
-
 namespace app\controllers;
-
 use Yii;
-use app\models\User;
-use app\models\UserSearch;
-use yii\web\Controller;
-use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
 
+
+use yii\rest\ActiveController;
+use app\models\User;
 /**
  * UserController implements the CRUD actions for User model.
  */
-class UserController extends Controller
+class UserController extends ActiveController
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'delete' => ['POST'],
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Lists all User models.
-     * @return mixed
-     */
-    public function actionIndex()
-    {
-        $searchModel = new UserSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }
-
-    /**
-     * Displays a single User model.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionView($id)
-    {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
-    }
-
-    /**
-     * Creates a new User model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
-    public function actionCreate()
-    {
-        $model = new User();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        }
-
-        return $this->render('create', [
-            'model' => $model,
-        ]);
-    }
-
-    /**
-     * Updates an existing User model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionUpdate($id)
-    {
-        $model = $this->findModel($id);
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        }
-
-        return $this->render('update', [
-            'model' => $model,
-        ]);
-    }
-
-    /**
-     * Deletes an existing User model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
-    }
-
-    /**
-     * Finds the User model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param integer $id
-     * @return User the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    protected function findModel($id)
-    {
-        if (($model = User::findOne($id)) !== null) {
-            return $model;
-        }
-
-        throw new NotFoundHttpException('The requested page does not exist.');
-    }
-
-
+     // We are using the regular web app modules:
+   public $modelClass = 'app\models\User';
+    
     public function actionLogin()
     {
-        return $this->render('login');
-    }
-
-    public function actionRegister(){
-       $user = new User();
-        if (Yii::$app->request->isAjax) {
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            return ActiveForm::validate($user);
-        }
-        if ($user->load(Yii::$app->request->post()) && $student->load(Yii::$app->request->post())) {
-            // check validation for user fields
-            if ($user->validate()) {
-               
-                if ($user->save()) {
-
-                    Yii::$app->getSession()->setFlash('success','Successful!');
-                    return $this->redirect('../site/index');
-                }else{
-                    $transaction->rollBack();
-                } 
-                
-
-            }
+        Yii::$app->response->format = \yii\web\Response:: FORMAT_JSON;
+        $post = Yii::$app->request->post();
+        if (empty($post["username"])) {
+            $respose = array('status'=>400, 'field'=>"username", "message"=>"Username cannot be blank.");
+            return $respose;
         }
 
-        return $this->render('register',array('user'=>$user,'student'=>$student));
+        if (empty($post["password"])) {
+            $respose = array('status'=>400, 'field'=>"password", "message"=>"Password cannot be blank.");
+            return $respose;
+        }
+        $model = User::findOne(["username" => $post["username"]]);
+        if (empty($model)) {
+            return array('status'=>400,'data'=>[], 'message'=>'incorrect username');
+        }
+        if ($model->validatePassword($post["password"])) {
+            $model->last_login = Yii::$app->formatter->asTimestamp(date_create());
+            $model->save(false);
+            return array('status'=>200,'data'=>$model, 'message'=>'Login successful');
+            
+        } else {
+            return array('status'=>400,'data'=>[], 'message'=>'Incorrect password');
+           
+        }
     }
 
 }
