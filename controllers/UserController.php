@@ -18,7 +18,7 @@ class UserController extends ActiveController
         Yii::$app->response->format = \yii\web\Response:: FORMAT_JSON;
         $post = Yii::$app->request->post();
         if (empty($post["username"])) {
-            $respose = array('status'=>400, 'field'=>"username", "message"=>"Username cannot be blank.");
+            $respose =  [array('field'=>"username", "message"=>"Username cannot be blank.")];
             return $respose;
         }
 

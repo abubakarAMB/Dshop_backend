@@ -13,19 +13,27 @@ class ServicesController extends ActiveController
 {
      // We are using the regular web app modules:
      public $modelClass = 'app\models\Services';
-     public function behaviors(){
-    return ArrayHelper::merge(
-        parent::behaviors(), [
-            'authenticator' => [
-                'class' => CompositeAuth::className(),
-                'except' => ['view'],
-                'authMethods' => [
-                    HttpBasicAuth::className(),
-                    HttpBearerAuth::className(),
-                    QueryParamAuth::className(),
-                ],
-            ],
-        ]
-    );
-    }
+    //  public function behaviors(){
+    // return ArrayHelper::merge(
+    //     parent::behaviors(), [
+    //         'authenticator' => [
+    //             'class' => CompositeAuth::className(),
+    //             'except' => ['view'],
+    //             'authMethods' => [
+    //                 HttpBasicAuth::className(),
+    //                 HttpBearerAuth::className(),
+    //                 QueryParamAuth::className(),
+    //             ],
+    //         ],
+    //     ]
+    // );
+    // }
+    public function behaviors()
+    {
+        $behaviors = parent::behaviors();
+        $behaviors['authenticator'] = [
+            'class' => HttpBearerAuth::className()   
+        ]; 
+        return $behaviors;
+    } 
 }
